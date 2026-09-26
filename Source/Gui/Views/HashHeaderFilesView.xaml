@@ -1,0 +1,139 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.HashHeaderFilesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource PageTitleStyle}" Text="Hash Header Files" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+                Optional, native/C++ mods only. Record UE4SS's reconstructed C++ SDK before and after an update,
+                to also track the game's native reflection layer, not just its assets.
+            </TextBlock>
+        </StackPanel>
+
+        <Grid x:Name="FieldsGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="165" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="Ue4ssFolderLabel" Grid.Row="0" Grid.Column="0" Text="UE4SS folder" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox
+                Grid.Row="0" Grid.Column="1"
+                x:Name="Ue4ssFolderBox"
+                Margin="4"
+                PlaceholderText="The folder next to UE4SS.dll, e.g. &lt;Game&gt;\Binaries\Win64\ue4ss"
+                AutomationProperties.LabeledBy="{Binding ElementName=Ue4ssFolderLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="0" Grid.Column="2" x:Name="BrowseUe4ssFolderButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseUe4ssFolder_Click" AutomationProperties.Name="Browse for UE4SS folder" />
+
+            <TextBlock x:Name="OutputPathLabel" Grid.Row="1" Grid.Column="0" Text="Output file (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="1" Grid.Column="1" x:Name="OutputPathBox" Margin="4" PlaceholderText="Auto-named from today's date if left blank" AutomationProperties.LabeledBy="{Binding ElementName=OutputPathLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="1" Grid.Column="2" x:Name="BrowseOutputButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseOutput_Click" AutomationProperties.Name="Browse for output file" />
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="4,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="RunButton" Style="{StaticResource PrimaryActionButtonStyle}" Content="Hash Header Files" Padding="16,6" Click="Run_Click" />
+            <ui:Button Cursor="Hand" Height="36" Grid.Column="1" Margin="8,0,0,0" x:Name="CancelButton"
+                Content="Cancel" Appearance="Secondary" IsEnabled="False" Padding="16,6" Click="Cancel_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="2"
+                Margin="8,0,0,0"
+                x:Name="RetrySaveButton"
+                Content="Retry Save"
+                Appearance="Secondary"
+                Visibility="Collapsed"
+                Padding="16,6"
+                Click="RetrySave_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="3"
+                Margin="8,0,0,0"
+                x:Name="CopyLogButton"
+                Content="Copy Log"
+                Appearance="Secondary"
+                Padding="16,6"
+                Click="CopyLog_Click" />
+            <TextBlock
+                Grid.Column="4"
+                x:Name="ProgressText"
+                Margin="12,0,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Opacity="0.8"
+                AutomationProperties.LiveSetting="Polite" />
+        </Grid>
+
+        <ProgressBar Grid.Row="3" x:Name="ProgressBar" Height="18" Margin="4,0,4,8" Foreground="{StaticResource NexusOrangeBrush}" AutomationProperties.Name="Hashing progress" />
+
+        <StackPanel Grid.Row="4" x:Name="UseAsPanel" Orientation="Horizontal" Margin="4,0,4,8" Visibility="Collapsed">
+            <TextBlock Text="Use this manifest in Compare Header Files:" VerticalAlignment="Center" Opacity="0.8" FontSize="12" />
+            <ui:Button Cursor="Hand" Height="36"
+                x:Name="UseAsOldButton"
+                Margin="8,0,0,0"
+                Content="Use as Old"
+                Appearance="Secondary"
+                Padding="12,4"
+                FontSize="12"
+                Click="UseAsOld_Click"
+                AutomationProperties.Name="Use this manifest as Old in Compare Header Files" />
+            <ui:Button Cursor="Hand" Height="36"
+                x:Name="UseAsNewButton"
+                Margin="6,0,0,0"
+                Content="Use as New"
+                Appearance="Secondary"
+                Padding="12,4"
+                FontSize="12"
+                Click="UseAsNew_Click"
+                AutomationProperties.Name="Use this manifest as New in Compare Header Files" />
+        </StackPanel>
+
+        <ScrollViewer
+            Grid.Row="5"
+            x:Name="LogScrollViewer"
+            Margin="4,0,4,4"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Auto">
+            <ScrollViewer.Resources>
+                <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="NexusOrangeBrush" />
+            </ScrollViewer.Resources>
+            <TextBox
+                x:Name="LogBox"
+                IsReadOnly="True"
+                IsReadOnlyCaretVisible="False"
+                Cursor="Arrow"
+                TextWrapping="NoWrap"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                FontFamily="Consolas"
+                AutomationProperties.Name="Operation log">
+                <TextBox.Resources>
+                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlFocusedBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+                </TextBox.Resources>
+            </TextBox>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

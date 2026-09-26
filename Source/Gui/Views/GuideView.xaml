@@ -1,0 +1,281 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.GuideView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    TextOptions.TextFormattingMode="Display">
+    <UserControl.Resources>
+        <Style x:Key="StepCardStyle" TargetType="Border" BasedOn="{StaticResource CardBorderStyle}">
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style x:Key="StepTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style x:Key="StepBodyStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Opacity" Value="0.85" />
+        </Style>
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Opacity" Value="0.6" />
+            <Setter Property="Margin" Value="2,20,0,8" />
+        </Style>
+        <Style x:Key="SectionIntroStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Opacity" Value="0.85" />
+            <Setter Property="Margin" Value="2,0,0,10" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <ScrollViewer
+            x:Name="MainScrollViewer"
+            VerticalScrollBarVisibility="Auto"
+            Margin="0,0,6,0"
+            ScrollChanged="MainScrollViewer_ScrollChanged">
+            <ScrollViewer.Resources>
+                <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="NexusOrangeBrush" />
+            </ScrollViewer.Resources>
+            <StackPanel MaxWidth="720" HorizontalAlignment="Left" Margin="32,28,16,28">
+                <TextBlock FontSize="22" FontWeight="Bold" Text="Getting started" Margin="0,0,0,4" />
+            <TextBlock TextWrapping="Wrap" Opacity="0.85" Margin="0,0,0,8">
+                After a game update, there's normally no easy way to tell which assets actually changed, or
+                which of your mods now need republishing as a result. The sidebar leads with SCOPE RULES (what
+                counts as Game content, a Mod, or should be ignored) and QUICK ACTIONS (a one-click before/after
+                shortcut once everything below is set up), followed by the three areas matching what this tool
+                can hash and compare individually - work through GAME first, then MODS; HEADERS is a separate,
+                optional check for native/C++ mods.
+            </TextBlock>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Margin="2,8,0,8" Text="SCOPE RULES" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                Decide what counts as Game content, a Mod, or should be ignored entirely - Hash Game Files, Hash
+                Mod Files and Quick Actions all read this one shared setting, so it only needs setting up once.
+            </TextBlock>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="Filter24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Scope Rules" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            By default, a file directly in the Paks root counts as Game content and anything in a
+                            subfolder counts as a Mod - leave this tab untouched and nothing else changes. Add
+                            overrides here to reclassify specific files or folders, then use
+                            <Bold>Preview scan scope</Bold> to check the result before saving.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="QUICK ACTIONS" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                Set up Scope Rules (if you're using it), then fill in Paks/Mods/UE version/AES/header folder
+                either here or on their own tabs - they're the same fields, kept in sync both ways - and Quick
+                Actions runs the whole before/after workflow in two clicks instead of stepping through each tab
+                by hand.
+            </TextBlock>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="FlashSettings24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Quick Actions" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            <Bold>Before Update</Bold> captures a baseline (game + mods, and headers too if set up)
+                            in one click. <Bold>After Update</Bold> rescans, finds that baseline automatically, and
+                            saves one combined report - no manual manifest picking. Its fields are the same ones
+                            shown on the other tabs, kept in sync both ways.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Margin="2,20,0,8" Text="GAME" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                Hash the game's assets before and after an update, then compare the two to see exactly what changed.
+            </TextBlock>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="DocumentTableSearch24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Hash Game Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Point this at the game's "Paks" folder <Bold>before</Bold> an update to record a hash of
+                            every asset, then run it again <Bold>after</Bold> - same folder, same settings - to
+                            capture the new state. Each run writes its own auto-named manifest file, so running it
+                            twice never overwrites the first.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="BranchCompare24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Compare Game Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Feed it the two Hash Game Files manifests from before and after the update to get an
+                            exact list of added, removed and changed assets. The result carries over to Compare Mod
+                            Files automatically, and can optionally export as a Markdown report.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="MODS" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                Hash your mod collection any time it changes, then compare it against a GAME comparison to see which
+                mods are actually affected.
+            </TextBlock>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="PuzzlePiece24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Hash Mod Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Point this at your mods folder to record which assets each mod pak overrides. It only
+                            reads file paths, not content, so it's fast and needs no base game at all - run it any
+                            time your mod collection changes, independent of the GAME steps.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="ShieldCheckmark24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Compare Mod Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Despite the name, it doesn't compare two mod snapshots - there's only ever one mods
+                            manifest. It cross-references that against a Compare Game Files result to answer one
+                            question: which mods are affected, and which are safe to leave alone. Optionally
+                            export a Markdown report.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="HEADERS (OPTIONAL: FOR NATIVE / C++ MOD AUTHORS)" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                A native/C++ mod reads the game's classes directly from memory instead of through Blueprints or assets,
+                so it can silently start reading the wrong bytes after an update even when nothing in GAME or MODS flags
+                a problem. Skip this section if you only use Blueprint or asset-based mods.
+            </TextBlock>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="CodeBlock24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Hash Header Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Point this at <Bold>UE4SS's own output folder</Bold> (next to its DLL, e.g.
+                            "&lt;Game&gt;\Binaries\Win64\ue4ss") before and after an update, same as Hash Game
+                            Files. It reads UE4SS's CXXHeaderDump and UHTHeaderDump folders - the reconstructed
+                            C++ SDK the game's Unreal build actually uses - into one manifest file.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource StepCardStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ui:SymbolIcon Grid.Column="0" Symbol="BracesVariable24" FontSize="24" Foreground="{StaticResource NexusOrangeBrush}" Margin="0,2,14,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource StepTitleStyle}" Text="Compare Header Files" />
+                        <TextBlock Style="{StaticResource StepBodyStyle}">
+                            Feed it the two Hash Header Files manifests from before and after the update. It reports
+                            two kinds of change: memory-layout breaks (a byte offset shifted - the silent way a mod
+                            reads the wrong bytes) marked with ⚠, and source-level changes that don't necessarily
+                            break anything. Optionally export a Markdown report.
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="UE VERSION AND AES KEY(S)" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                UE version must be the exact CUE4Parse name for the game's Unreal Engine build (e.g. "GAME_UE5_3") -
+                start typing in that field to filter the list instead of needing to know the exact spelling. AES key
+                is only needed if the game's paks are encrypted; leave it blank otherwise. Some games use more than
+                one key (e.g. separate DLC/season content) - enter one per line, each either "GUID:HEXKEY" or a bare
+                hex key for the game's main key. Both fields are shared between Hash Game Files and Hash Mod Files,
+                so setting one updates the other automatically.
+            </TextBlock>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="PROFILES" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                The Profile picker at the bottom of the sidebar saves every field on every tab under a name you
+                choose, so you can switch between full setups (e.g. one profile per game) instantly instead of
+                re-typing paths. Pick a saved name to apply it, type a new one and click the save icon to add it.
+            </TextBlock>
+
+            <TextBlock Style="{StaticResource SectionHeaderStyle}" Text="AUTOMATING IT" />
+            <TextBlock Style="{StaticResource SectionIntroStyle}">
+                Everything here is also available as a command-line tool and a set of launcher scripts,
+                including the optional HEADERS steps (see the project's README), for scripting the same actions
+                or running them without the GUI.
+            </TextBlock>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Hints that there's more to scroll to below - fades out the last sliver of whatever card/paragraph
+              the viewport happens to cut off, rather than a hard clip against the window edge. Hidden once
+              there's nothing left to scroll to, in MainScrollViewer_ScrollChanged.  -->
+        <Border
+            x:Name="BottomFadeOverlay"
+            Height="28"
+            Margin="0,0,6,0"
+            VerticalAlignment="Bottom"
+            IsHitTestVisible="False"
+            Background="{DynamicResource ApplicationBackgroundBrush}">
+            <Border.OpacityMask>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Offset="0" Color="Transparent" />
+                    <GradientStop Offset="1" Color="Black" />
+                </LinearGradientBrush>
+            </Border.OpacityMask>
+        </Border>
+    </Grid>
+</UserControl>

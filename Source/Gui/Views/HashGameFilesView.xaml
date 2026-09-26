@@ -1,0 +1,190 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.HashGameFilesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource PageTitleStyle}" Text="Hash Game Files" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+                Record a hash of every asset in the game's Paks folder. Run this before an update and again
+                after it, then use Compare Game Files to see exactly what changed.
+            </TextBlock>
+        </StackPanel>
+
+        <Grid x:Name="FieldsGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="165" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="PaksFolderLabel" Grid.Row="0" Grid.Column="0" Text="Paks folder" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="0" Grid.Column="1" x:Name="PaksFolderBox" Margin="4" PlaceholderText="Folder containing the game's .pak / .utoc+.ucas files" AutomationProperties.LabeledBy="{Binding ElementName=PaksFolderLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="0" Grid.Column="2" x:Name="BrowsePaksFolderButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowsePaksFolder_Click" AutomationProperties.Name="Browse for Paks folder" />
+
+            <TextBlock x:Name="UeVersionLabel" Grid.Row="1" Grid.Column="0" Text="UE version" VerticalAlignment="Center" Margin="0,4" />
+            <ComboBox Cursor="Hand"
+                Grid.Row="1" Grid.Column="1"
+                x:Name="UeVersionCombo"
+                Margin="4"
+                IsEditable="True"
+                IsTextSearchEnabled="False"
+                MaxDropDownHeight="280"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                ToolTip="Exact CUE4Parse EGame name - start typing to filter, e.g. GAME_UE5_5"
+                AutomationProperties.LabeledBy="{Binding ElementName=UeVersionLabel}" />
+
+            <TextBlock x:Name="AesKeyLabel" Grid.Row="2" Grid.Column="0" Text="AES key(s) (optional)" VerticalAlignment="Top" Margin="0,8,0,4" />
+            <ui:TextBox
+                Grid.Row="2" Grid.Column="1"
+                x:Name="AesKeyBox"
+                Margin="4"
+                Height="70"
+                AcceptsReturn="True"
+                VerticalContentAlignment="Top"
+                VerticalScrollBarVisibility="Auto"
+                TextWrapping="NoWrap"
+                PlaceholderText="One per line, GUID:HEXKEY or bare HEXKEY for the main key. Leave blank if unencrypted."
+                AutomationProperties.LabeledBy="{Binding ElementName=AesKeyLabel}" />
+
+            <TextBlock x:Name="VersionTagLabel" Grid.Row="3" Grid.Column="0" Text="Version tag (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="3" Grid.Column="1" x:Name="VersionTagBox" Margin="4" PlaceholderText="Override for the auto-detected game version" AutomationProperties.LabeledBy="{Binding ElementName=VersionTagLabel}" />
+
+            <TextBlock x:Name="OutputPathLabel" Grid.Row="4" Grid.Column="0" Text="Output file (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="4" Grid.Column="1" x:Name="OutputPathBox" Margin="4" PlaceholderText="Auto-named from the detected version + date if left blank" AutomationProperties.LabeledBy="{Binding ElementName=OutputPathLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="4" Grid.Column="2" x:Name="BrowseOutputButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseOutput_Click" AutomationProperties.Name="Browse for output file" />
+
+            <TextBlock x:Name="ScopeRulesLabel" Grid.Row="5" Grid.Column="0" Text="Scope rules (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox
+                Grid.Row="5" Grid.Column="1"
+                x:Name="ScopeRulesBox"
+                Margin="4"
+                PlaceholderText="A scope-rules JSON file classifying Paks content as Game/Mod/Ignore. Leave blank to hash everything (unchanged behavior)."
+                AutomationProperties.LabeledBy="{Binding ElementName=ScopeRulesLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="5" Grid.Column="2" x:Name="BrowseScopeRulesButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseScopeRules_Click" AutomationProperties.Name="Browse for scope rules file" />
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="4,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="RunButton" Style="{StaticResource PrimaryActionButtonStyle}" Content="Hash Game Files" Padding="16,6" Click="Run_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="1"
+                Margin="8,0,0,0"
+                x:Name="CancelButton"
+                Content="Cancel"
+                Appearance="Secondary"
+                IsEnabled="False"
+                Padding="16,6"
+                Click="Cancel_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="2"
+                Margin="8,0,0,0"
+                x:Name="RetrySaveButton"
+                Content="Retry Save"
+                Appearance="Secondary"
+                Visibility="Collapsed"
+                Padding="16,6"
+                Click="RetrySave_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="3"
+                Margin="8,0,0,0"
+                x:Name="CopyLogButton"
+                Content="Copy Log"
+                Appearance="Secondary"
+                Padding="16,6"
+                Click="CopyLog_Click" />
+            <TextBlock
+                Grid.Column="4"
+                x:Name="ProgressText"
+                Margin="12,0,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Opacity="0.8" />
+        </Grid>
+
+        <ProgressBar Grid.Row="3" x:Name="ProgressBar" Height="18" Margin="4,0,4,8" Foreground="{StaticResource NexusOrangeBrush}" AutomationProperties.Name="Hashing progress" />
+
+        <StackPanel Grid.Row="4" x:Name="UseAsPanel" Orientation="Horizontal" Margin="4,0,4,8" Visibility="Collapsed">
+            <TextBlock Text="Use this manifest in Compare Game Files:" VerticalAlignment="Center" Opacity="0.8" FontSize="12" />
+            <ui:Button Cursor="Hand" Height="36"
+                x:Name="UseAsOldButton"
+                Margin="8,0,0,0"
+                Content="Use as Old"
+                Appearance="Secondary"
+                Padding="12,4"
+                FontSize="12"
+                Click="UseAsOld_Click"
+                AutomationProperties.Name="Use this manifest as Old in Compare Game Files" />
+            <ui:Button Cursor="Hand" Height="36"
+                x:Name="UseAsNewButton"
+                Margin="6,0,0,0"
+                Content="Use as New"
+                Appearance="Secondary"
+                Padding="12,4"
+                FontSize="12"
+                Click="UseAsNew_Click"
+                AutomationProperties.Name="Use this manifest as New in Compare Game Files" />
+        </StackPanel>
+
+        <!--  WPF-UI's TextBox renders its internal scrollbar-hosting ScrollViewer as a "PassiveScrollViewer",
+              which - unlike a plain ScrollViewer - never draws visible scrollbar thumbs no matter how
+              VerticalScrollBarVisibility/HorizontalScrollBarVisibility are set (confirmed by rendering it in
+              isolation). Disabling the TextBox's own internal scrolling and wrapping it in an explicit plain
+              ScrollViewer instead gets real, visible scrollbars back.  -->
+        <ScrollViewer
+            Grid.Row="5"
+            x:Name="LogScrollViewer"
+            Margin="4,0,4,4"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Auto">
+            <ScrollViewer.Resources>
+                <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="NexusOrangeBrush" />
+            </ScrollViewer.Resources>
+            <TextBox
+                x:Name="LogBox"
+                IsReadOnly="True"
+                IsReadOnlyCaretVisible="False"
+                Cursor="Arrow"
+                TextWrapping="NoWrap"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                FontFamily="Consolas"
+                AutomationProperties.Name="Operation log">
+                <!--  Also swaps background/accent-border color on focus and hover - cues meant for editable
+                      fields, which just make a read-only log look "selected" when clicked or even just
+                      hovered. Aliasing those three keys to their plain equivalents, scoped to just this
+                      control, keeps normal click-drag/Ctrl+C selection working with no visible highlight.  -->
+                <TextBox.Resources>
+                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlFocusedBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+                </TextBox.Resources>
+            </TextBox>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

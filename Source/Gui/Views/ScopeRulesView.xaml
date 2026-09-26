@@ -1,0 +1,213 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.ScopeRulesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:local="clr-namespace:DekUnrealGameAudit.Gui.Views">
+    <UserControl.Resources>
+        <!--  Each rule row's Action is edited in place via this combo box rather than a separate modal dialog -
+              changing a rule's Path/Type still means Remove + Add, but the Action (the one thing worth tweaking
+              without redoing the whole rule) is always live-editable right in the list. Its item list is set
+              from code-behind on Loaded (ScopeRulesView.RuleActionCombo_Loaded) rather than an
+              ObjectDataProvider resource - a plain Enum.GetValues call there is unambiguous, unlike relying on
+              exactly how a resource-only binding resolves without being able to visually confirm it.  -->
+        <DataTemplate x:Key="RuleActionCellTemplate" DataType="{x:Type local:ScopeRuleRow}">
+            <ComboBox Cursor="Hand"
+                MinWidth="92"
+                SelectedItem="{Binding Action, Mode=TwoWay}"
+                Loaded="RuleActionCombo_Loaded"
+                SelectionChanged="RuleActionCombo_SelectionChanged"
+                AutomationProperties.Name="Rule action" />
+        </DataTemplate>
+        <!--  ListView/GridViewColumnHeader/ListViewItem dark-theme styles used to live here; promoted to
+              App.xaml (implicit, applies to every ListView in the app) so the Compare views' result lists
+              share the same theming instead of redefining it.  -->
+    </UserControl.Resources>
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource PageTitleStyle}" Text="Scope Rules" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+                Build the file/folder rules that decide what Hash Game Files, Hash Mod Files and Quick Actions
+                treat as Game content, a Mod, or Ignored. Shared with those tabs via the same "Scope rules"
+                field - no separate copy to keep in sync.
+            </TextBlock>
+        </StackPanel>
+
+        <Grid x:Name="FileFieldsGrid" Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="165" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="ScopeRulesPathLabel" Grid.Column="0" Text="Scope rules file" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox
+                Grid.Column="1"
+                x:Name="ScopeRulesPathBox"
+                Margin="4"
+                PlaceholderText="Blank = no scope rules, everything under each folder is used unchanged"
+                AutomationProperties.LabeledBy="{Binding ElementName=ScopeRulesPathLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Column="2" x:Name="BrowseButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="Browse_Click" AutomationProperties.Name="Browse for an existing scope rules file" />
+            <Button Cursor="Hand" Height="36" Grid.Column="3" x:Name="NewButton" Content="New..." Margin="4" Padding="12,4" FontSize="12" Click="New_Click" AutomationProperties.Name="Create a new scope rules file" />
+        </Grid>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" Margin="0,0,0,4" Text="Defaults and precedence" />
+                <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.85">
+                    By default, a file directly in the scan root (e.g. base.pak) counts as Game content; a file
+                    in any subfolder, at any depth - "~mods/MyMod/MyMod_P.pak", "LogicMods/Foo_P.pak", or any
+                    other folder name - counts as a Mod. Rules below override that default: Ignore always wins,
+                    even over a more specific rule underneath it; otherwise an exact file rule beats a folder
+                    rule; among folder rules, the deepest (most specific) one wins.
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!--  IsSharedSizeScope + matching SharedSizeGroup names below is what actually guarantees the two
+              side-by-side panels line up - they're still two independent Grids (RulesEditorGrid needs to stay
+              its own named container so its IsEnabled can be toggled as a unit, see SetEditingLocked below),
+              but WPF sizes any row sharing a group name identically across every participating grid in this
+              scope, so e.g. both ListViews start and end at the exact same Y position regardless of which
+              side's content is taller in the rows above/below them.  -->
+        <Grid Grid.Row="3" Grid.IsSharedSizeScope="True">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Left: the rule list itself - add/remove file and folder overrides, edit each one's action
+                  inline via the row's own combo box rather than a separate modal (see ScopeRulesView.xaml.cs).
+                  Row-for-row the same shape as the right panel below: toolbar, one status line, the list, one
+                  bottom row - even where this side has nothing for a row (there isn't one currently), keeping
+                  the row declared with the same SharedSizeGroup is what keeps the two lists' top/bottom edges
+                  level with each other.  -->
+            <Grid x:Name="RulesEditorGrid" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesToolbarRow" />
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesStatusRow" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesBottomRow" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Rules" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <ui:Button Cursor="Hand" Height="36" Grid.Column="1" Margin="12,0,0,0" x:Name="AddFileButton" Content="Add file..." Appearance="Secondary" Padding="12,4" FontSize="12" Click="AddFile_Click" />
+                    <ui:Button Cursor="Hand" Height="36" Grid.Column="2" Margin="6,0,0,0" x:Name="AddFolderButton" Content="Add folder..." Appearance="Secondary" Padding="12,4" FontSize="12" Click="AddFolder_Click" />
+                    <ui:Button Cursor="Hand" Height="36" Grid.Column="3" Margin="6,0,0,0" HorizontalAlignment="Right" x:Name="RemoveRuleButton" Content="Remove" Appearance="Secondary" Padding="12,4" FontSize="12" Click="RemoveRule_Click" IsEnabled="False" />
+                </Grid>
+
+                <!--  Same row position as PreviewCountsText on the right - seeing a conflict called out here,
+                    before the list rather than after it, also just reads better than the original bottom
+                    placement did.  -->
+                <TextBlock Grid.Row="1" x:Name="ConflictText" Style="{StaticResource WarningTextStyle}" Margin="0,0,0,6" FontSize="12" Visibility="Collapsed" AutomationProperties.LiveSetting="Polite" />
+
+                <Grid Grid.Row="2">
+                    <ListView x:Name="RulesListView" SelectionChanged="RulesListView_SelectionChanged" AutomationProperties.Name="Scope rules">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Path" Width="160" DisplayMemberBinding="{Binding Path}" />
+                                <GridViewColumn Header="Type" Width="52" DisplayMemberBinding="{Binding TypeLabel}" />
+                                <GridViewColumn Header="Action" Width="108" CellTemplate="{StaticResource RuleActionCellTemplate}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <!--  Centered, not top-aligned - the ListView's own column-header row lives at the very
+                        top of this same cell, and centering avoids overlapping it entirely rather than
+                        needing a hand-tuned top margin that would need to change if the header row's own
+                        height ever did.  -->
+                    <TextBlock
+                        x:Name="EmptyRulesHint"
+                        Margin="24"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        TextAlignment="Center"
+                        FontSize="12"
+                        Opacity="0.6"
+                        TextWrapping="Wrap"
+                        IsHitTestVisible="False"
+                        Text="No rules yet.&#10;Use &quot;Add file...&quot; or &quot;Add folder...&quot; above, or leave this empty to use the defaults shown above." />
+                </Grid>
+
+                <Grid Grid.Row="3" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="SaveButton" Style="{StaticResource PrimaryActionButtonStyle}" Content="Save Rules" Padding="16,6" Click="Save_Click" />
+                    <TextBlock Grid.Column="1" x:Name="SaveStatusText" Margin="12,0,0,0" VerticalAlignment="Center" FontSize="12" Opacity="0.8" AutomationProperties.LiveSetting="Polite" />
+                </Grid>
+            </Grid>
+
+            <!--  Right: preview scan scope against the Paks folder configured on Hash Game Files, using the
+                  in-memory (possibly unsaved) rules above, so what you see here is exactly what you're about
+                  to save.  -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesToolbarRow" />
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesStatusRow" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" SharedSizeGroup="ScopeRulesBottomRow" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="120" />
+                    </Grid.ColumnDefinitions>
+                    <ui:Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="PreviewButton" Content="Preview scan scope" Appearance="Secondary" Padding="12,4" FontSize="12" Click="Preview_Click" />
+                    <ui:TextBox Grid.Column="1" Margin="8,0,0,0" x:Name="PreviewSearchBox" PlaceholderText="Search by path..." TextChanged="PreviewFilter_Changed" AutomationProperties.Name="Search preview results by path" />
+                    <ComboBox Cursor="Hand" Grid.Column="2" Margin="8,0,0,0" x:Name="PreviewGroupFilterCombo" SelectionChanged="PreviewFilter_Changed" AutomationProperties.Name="Filter preview results by group" />
+                </Grid>
+
+                <TextBlock Grid.Row="1" x:Name="PreviewCountsText" Margin="0,0,0,6" FontSize="12" Opacity="0.85" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+
+                <ListView Grid.Row="2" x:Name="PreviewListView" AutomationProperties.Name="Scan scope preview">
+                    <ListView.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource CardStrokeColorDefaultBrush}" Padding="8,3" Margin="0,2,0,0">
+                                        <TextBlock FontWeight="SemiBold" FontSize="12">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0} ({1})">
+                                                    <Binding Path="Name" />
+                                                    <Binding Path="ItemCount" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ListView.GroupStyle>
+                    <!--  No separate Group column - the group header above each cluster already says it, and
+                        dropping it gives Path/Why the width back instead of repeating the same word on
+                        every single row.  -->
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Path" Width="220" DisplayMemberBinding="{Binding Path}" />
+                            <GridViewColumn Header="Why" Width="230" DisplayMemberBinding="{Binding Reason}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

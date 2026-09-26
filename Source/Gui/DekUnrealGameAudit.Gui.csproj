@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Unlike the CLI project, WPF genuinely needs real culture/keyboard-layout data for text
+         input and focus handling - invariant mode crashes the moment you click into a text box. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <AssemblyName>DekUnrealGameAudit.Gui</AssemblyName>
+    <RootNamespace>DekUnrealGameAudit.Gui</RootNamespace>
+    <!-- Sets the .exe's own Win32 icon resource (Explorer, taskbar pin, Alt-Tab default) - the
+         sidebar's fingerprint glyph, in Nexus orange on a dark rounded square. -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DekUnrealGameAudit.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Security.Cryptography.ProtectedData (DPAPI) needs no PackageReference here - it ships in
+         the Windows Desktop shared framework for a "-windows" TFM, unlike the plain net10.0 CLI project. -->
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reuses Source/Core and Source/Commands directly - no logic is duplicated between the CLI and GUI. -->
+    <ProjectReference Include="..\DekUnrealGameAudit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded as a WPF resource (not just the ApplicationIcon above) so MainWindow.xaml can also
+         reference it via pack URI for the title-bar/taskbar/Alt-Tab icon at runtime. -->
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,146 @@
+<Application
+    x:Class="DekUnrealGameAudit.Gui.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!--  Nexus Mods' own brand orange (#fb923c, sampled from nexusmods.com's primary button), used
+                  as this app's highlight color instead of WPF-UI's default Windows-accent-derived one.  -->
+            <SolidColorBrush x:Key="NexusOrangeBrush" Color="#FB923C" />
+            <SolidColorBrush x:Key="NexusOrangeMutedBrush" Color="#33FB923C" />
+            <SolidColorBrush x:Key="NexusOrangeFaintBrush" Color="#1AFB923C" />
+
+            <!--  Each action screen's one prominent "do the thing" button (Hash/Compare *) - a plain Button
+                  with a hand-rolled template rather than ui:Button Appearance="Primary", since WPF-UI's
+                  Primary appearance keys off its own SystemAccentColor* theme resources, not this app's
+                  NexusOrangeBrush, and fighting that template's built-in hover/pressed states to re-theme it
+                  is more fragile than just owning the template outright - same approach already used for the
+                  sidebar's NavItemStyle/LogoNavItemStyle in MainWindow.xaml.  -->
+            <Style x:Key="PrimaryActionButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource NexusOrangeBrush}" />
+                <Setter Property="Foreground" Value="#1A1A1A" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.88" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.75" />
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Bd" Property="Opacity" Value="0.4" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!--  Page title/purpose line shown at the top of each of the six action screens - same heading
+                  weight the Guide page already established for "Getting started", so a screen you land on
+                  directly (not via Guide) still identifies its task without needing to visit Guide first.  -->
+            <Style x:Key="PageTitleStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="22" />
+                <Setter Property="FontWeight" Value="Bold" />
+            </Style>
+            <Style x:Key="PageSubtitleStyle" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Opacity" Value="0.75" />
+                <Setter Property="Margin" Value="0,4,0,16" />
+            </Style>
+
+            <!--  The "input card"/bordered-panel look independently re-typed in ScopeRulesView, QuickActionsView's
+                  ResultsPanel, and GuideView's StepCardStyle - pulled into one shared style so a future card
+                  looks consistent by construction instead of by copy-paste. WPF-UI's own theme resources (not
+                  NexusOrangeBrush) so it fits alongside every other themed surface.  -->
+            <Style x:Key="CardBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="Padding" Value="12" />
+            </Style>
+
+            <!--  The app's one "pay attention" text color (NexusOrangeBrush), previously hardcoded per-view on
+                  ConflictText/ResultWarningsText - named so future warning text is consistent by construction.  -->
+            <Style x:Key="WarningTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource NexusOrangeBrush}" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+
+            <!--  WPF-UI's ControlsDictionary provides no style at all for ListView/GridView (confirmed via
+                  reflection - it simply isn't one of the controls it themes), so without this a ListView renders
+                  with the raw OS-default white background/black text regardless of the app's dark theme.
+                  Originally ScopeRulesView-local; promoted here (implicit, no x:Key, so it applies to every
+                  ListView in the app automatically) so the Compare views' new structured result lists get the
+                  same theming for free instead of re-defining it per view. GridViewRowPresenter keeps GridView's
+                  column layout while letting the row itself be retemplated, the same "own the template outright"
+                  approach MainWindow.xaml's NavItemStyle already uses for Button.  -->
+            <Style TargetType="ListView">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            </Style>
+            <Style TargetType="GridViewColumnHeader">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="Padding" Value="8,6" />
+                <Setter Property="HorizontalContentAlignment" Value="Left" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="GridViewColumnHeader">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,1,1" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style TargetType="ListViewItem">
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                <!--  Vertical-only padding - GridViewRowPresenter already lines its cells up with the column
+                      headers exactly; horizontal padding here would just eat into that budget and risk clipping
+                      the last column instead of giving the row breathing room.  -->
+                <Setter Property="Padding" Value="0,4" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border x:Name="Bd" Background="Transparent" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1" Padding="{TemplateBinding Padding}">
+                                <GridViewRowPresenter Content="{TemplateBinding Content}" Columns="{Binding Path=View.Columns, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource NexusOrangeFaintBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource NexusOrangeMutedBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,23 @@
+<Project>
+  <!--
+    Keeps this project's build output under the repo root's Build\ folder instead of a local
+    bin\/obj\ next to the .csproj. $(MSBuildThisFileDirectory) always means "the folder this
+    file is in" (Source\), regardless of which project imports it, so this stays correct even
+    if invoked from elsewhere.
+
+    BaseIntermediateOutputPath specifically must be set here rather than in the .csproj: NuGet's
+    restore step reads it before Microsoft.Common.props is imported, so setting it inside the
+    project file itself is too late and leaves a stray obj\ folder behind.
+
+    The "DekUnrealGameAudit" segment is a literal, not a computed $(MSBuildProjectName) - WPF's
+    build process generates a temporary shadow project (a "..._wpftmp.csproj") for markup
+    compilation with its own generated name, which would compute a *different* path than the
+    real project if this were name-derived. DekUnrealGameAudit.Gui.csproj has its own sibling
+    Directory.Build.props in Gui\ for exactly this reason (MSBuild only auto-imports the
+    closest one up the tree, so the two never conflict).
+  -->
+  <PropertyGroup>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)..\Build\bin\DekUnrealGameAudit\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\Build\obj\DekUnrealGameAudit\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

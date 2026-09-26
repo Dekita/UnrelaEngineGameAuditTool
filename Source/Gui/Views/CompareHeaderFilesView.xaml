@@ -1,0 +1,145 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.CompareHeaderFilesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource PageTitleStyle}" Text="Compare Header Files" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+                Optional, native/C++ mods only. Feed it the two Hash Header Files manifests to catch
+                memory-layout breaks and source-level changes between builds.
+            </TextBlock>
+        </StackPanel>
+
+        <Grid x:Name="FieldsGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="165" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="OldManifestLabel" Grid.Row="0" Grid.Column="0" Text="Old header manifest" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="0" Grid.Column="1" x:Name="OldManifestBox" Margin="4" PlaceholderText="Header manifest from before the update" AutomationProperties.LabeledBy="{Binding ElementName=OldManifestLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="0" Grid.Column="2" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseOld_Click" AutomationProperties.Name="Browse for old header manifest" />
+
+            <TextBlock x:Name="NewManifestLabel" Grid.Row="1" Grid.Column="0" Text="New header manifest" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="1" Grid.Column="1" x:Name="NewManifestBox" Margin="4" PlaceholderText="Header manifest from after the update" AutomationProperties.LabeledBy="{Binding ElementName=NewManifestLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="1" Grid.Column="2" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseNew_Click" AutomationProperties.Name="Browse for new header manifest" />
+
+            <TextBlock x:Name="OutputPathLabel" Grid.Row="2" Grid.Column="0" Text="Output file" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="2" Grid.Column="1" x:Name="OutputPathBox" Margin="4" PlaceholderText="header-comparison.json" AutomationProperties.LabeledBy="{Binding ElementName=OutputPathLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="2" Grid.Column="2" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseOutput_Click" AutomationProperties.Name="Browse for output file" />
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="4,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="RunButton" Style="{StaticResource PrimaryActionButtonStyle}" Content="Compare Header Files" Padding="16,6" Click="Run_Click" />
+            <ui:Button Cursor="Hand" Height="36" Grid.Column="1" Margin="8,0,0,0" x:Name="CancelButton"
+                Content="Cancel" Appearance="Secondary" IsEnabled="False" Padding="16,6" Click="Cancel_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="2"
+                Margin="8,0,0,0"
+                x:Name="ExportMarkdownButton"
+                Content="Export Markdown"
+                Appearance="Secondary"
+                IsEnabled="False"
+                Padding="16,6"
+                Click="ExportMarkdown_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="3"
+                Margin="8,0,0,0"
+                x:Name="CopyLogButton"
+                Content="Copy Log"
+                Appearance="Secondary"
+                Padding="16,6"
+                Click="CopyLog_Click" />
+            <TextBlock
+                Grid.Column="4"
+                x:Name="StatusText"
+                Margin="12,0,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Opacity="0.8"
+                AutomationProperties.LiveSetting="Polite" />
+        </Grid>
+
+        <TextBlock Grid.Row="3" x:Name="CxxSummaryText" Margin="4" FontWeight="SemiBold" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        <TextBlock Grid.Row="4" x:Name="UhtSummaryText" Margin="4" FontWeight="SemiBold" Opacity="0.85" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+
+        <Grid Grid.Row="5" Margin="4,8,4,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <ui:TextBox Grid.Row="0" x:Name="ResultsSearchBox" Margin="0,0,0,4" PlaceholderText="Filter by name..." AutomationProperties.Name="Filter results by name" />
+                <ListView Grid.Row="1" x:Name="ResultsListView" AutomationProperties.Name="Comparison results">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Category" DisplayMemberBinding="{Binding Category}" Width="90" />
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Path}" Width="200" />
+                            <GridViewColumn Header="Detail" DisplayMemberBinding="{Binding Detail}" Width="100" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <TextBlock Grid.Row="1" x:Name="ResultsEmptyHint" Opacity="0.6" FontSize="12" TextWrapping="Wrap"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" MaxWidth="260"
+                    IsHitTestVisible="False" />
+            </Grid>
+
+            <ScrollViewer
+                Grid.Column="2"
+                x:Name="LogScrollViewer"
+                VerticalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Auto">
+                <ScrollViewer.Resources>
+                    <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="NexusOrangeBrush" />
+                </ScrollViewer.Resources>
+                <TextBox
+                    x:Name="LogBox"
+                    IsReadOnly="True"
+                    IsReadOnlyCaretVisible="False"
+                    Cursor="Arrow"
+                    TextWrapping="NoWrap"
+                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    FontFamily="Consolas"
+                    AutomationProperties.Name="Operation log">
+                    <TextBox.Resources>
+                        <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextControlBackground" />
+                        <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextControlBackground" />
+                        <StaticResource x:Key="TextControlFocusedBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+                    </TextBox.Resources>
+                </TextBox>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

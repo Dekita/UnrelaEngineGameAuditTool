@@ -1,0 +1,158 @@
+<UserControl
+    x:Class="DekUnrealGameAudit.Gui.Views.HashModFilesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid Margin="32,28,32,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Style="{StaticResource PageTitleStyle}" Text="Hash Mod Files" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+                Record which assets each mod pak overrides. Only reads file paths, not content, so it's fast -
+                run it any time your mod collection changes, independently of the Hash Game Files timing.
+            </TextBlock>
+        </StackPanel>
+
+        <Grid x:Name="FieldsGrid" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="165" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="ModsFolderLabel" Grid.Row="0" Grid.Column="0" Text="Mods folder(s)" VerticalAlignment="Top" Margin="0,8,0,4" />
+            <ui:TextBox
+                Grid.Row="0" Grid.Column="1"
+                x:Name="ModsFolderBox"
+                Margin="4"
+                Height="54"
+                AcceptsReturn="True"
+                VerticalContentAlignment="Top"
+                VerticalScrollBarVisibility="Auto"
+                TextWrapping="NoWrap"
+                PlaceholderText="One folder per line - add more mod roots as needed (subfolders are scanned too)"
+                AutomationProperties.LabeledBy="{Binding ElementName=ModsFolderLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="0" Grid.Column="2" VerticalAlignment="Top" Margin="4,8,4,4" Content="Browse..." Padding="12,4" FontSize="12" Click="BrowseModsFolder_Click" AutomationProperties.Name="Browse for mods folder" />
+
+            <TextBlock x:Name="UeVersionLabel" Grid.Row="1" Grid.Column="0" Text="UE version" VerticalAlignment="Center" Margin="0,4" />
+            <ComboBox Cursor="Hand"
+                Grid.Row="1" Grid.Column="1"
+                x:Name="UeVersionCombo"
+                Margin="4"
+                IsEditable="True"
+                IsTextSearchEnabled="False"
+                MaxDropDownHeight="280"
+                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                ToolTip="Exact CUE4Parse EGame name - start typing to filter, e.g. GAME_UE5_5"
+                AutomationProperties.LabeledBy="{Binding ElementName=UeVersionLabel}" />
+
+            <TextBlock x:Name="AesKeyLabel" Grid.Row="2" Grid.Column="0" Text="AES key(s) (optional)" VerticalAlignment="Top" Margin="0,8,0,4" />
+            <ui:TextBox
+                Grid.Row="2" Grid.Column="1"
+                x:Name="AesKeyBox"
+                Margin="4"
+                Height="70"
+                AcceptsReturn="True"
+                VerticalContentAlignment="Top"
+                VerticalScrollBarVisibility="Auto"
+                TextWrapping="NoWrap"
+                PlaceholderText="One per line, GUID:HEXKEY or bare HEXKEY for the main key. Leave blank if unencrypted."
+                AutomationProperties.LabeledBy="{Binding ElementName=AesKeyLabel}" />
+
+            <TextBlock x:Name="OutputPathLabel" Grid.Row="3" Grid.Column="0" Text="Output file (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox Grid.Row="3" Grid.Column="1" x:Name="OutputPathBox" Margin="4" PlaceholderText="Auto-named from today's date if left blank" AutomationProperties.LabeledBy="{Binding ElementName=OutputPathLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="3" Grid.Column="2" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseOutput_Click" AutomationProperties.Name="Browse for output file" />
+
+            <TextBlock x:Name="ScopeRulesLabel" Grid.Row="4" Grid.Column="0" Text="Scope rules (optional)" VerticalAlignment="Center" Margin="0,4" />
+            <ui:TextBox
+                Grid.Row="4" Grid.Column="1"
+                x:Name="ScopeRulesBox"
+                Margin="4"
+                PlaceholderText="A scope-rules JSON file classifying Paks content as Game/Mod/Ignore. Leave blank to hash everything found here (unchanged behavior)."
+                AutomationProperties.LabeledBy="{Binding ElementName=ScopeRulesLabel}" />
+            <Button Cursor="Hand" Height="36" Grid.Row="4" Grid.Column="2" x:Name="BrowseScopeRulesButton" Content="Browse..." Margin="4" Padding="12,4" FontSize="12" Click="BrowseScopeRules_Click" AutomationProperties.Name="Browse for scope rules file" />
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="4,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Cursor="Hand" Height="36" Grid.Column="0" x:Name="RunButton" Style="{StaticResource PrimaryActionButtonStyle}" Content="Hash Mod Files" Padding="16,6" Click="Run_Click" />
+            <ui:Button Cursor="Hand" Height="36" Grid.Column="1" Margin="8,0,0,0" x:Name="CancelButton"
+                Content="Cancel" Appearance="Secondary" IsEnabled="False" Padding="16,6" Click="Cancel_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="2"
+                Margin="8,0,0,0"
+                x:Name="RetrySaveButton"
+                Content="Retry Save"
+                Appearance="Secondary"
+                Visibility="Collapsed"
+                Padding="16,6"
+                Click="RetrySave_Click" />
+            <ui:Button Cursor="Hand" Height="36"
+                Grid.Column="3"
+                Margin="8,0,0,0"
+                x:Name="CopyLogButton"
+                Content="Copy Log"
+                Appearance="Secondary"
+                Padding="16,6"
+                Click="CopyLog_Click" />
+            <TextBlock
+                Grid.Column="4"
+                x:Name="ProgressText"
+                Margin="12,0,0,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                FontSize="12"
+                Opacity="0.8"
+                AutomationProperties.LiveSetting="Polite" />
+        </Grid>
+
+        <ProgressBar Grid.Row="3" x:Name="ProgressBar" Height="18" Margin="4,0,4,8" Foreground="{StaticResource NexusOrangeBrush}" AutomationProperties.Name="Hashing progress" />
+
+        <ScrollViewer
+            Grid.Row="4"
+            x:Name="LogScrollViewer"
+            Margin="4,0,4,4"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Auto">
+            <ScrollViewer.Resources>
+                <StaticResource x:Key="ScrollBarThumbFill" ResourceKey="NexusOrangeBrush" />
+            </ScrollViewer.Resources>
+            <TextBox
+                x:Name="LogBox"
+                IsReadOnly="True"
+                IsReadOnlyCaretVisible="False"
+                Cursor="Arrow"
+                TextWrapping="NoWrap"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                FontFamily="Consolas"
+                AutomationProperties.Name="Operation log">
+                <TextBox.Resources>
+                    <StaticResource x:Key="TextControlBackgroundFocused" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlBackgroundPointerOver" ResourceKey="TextControlBackground" />
+                    <StaticResource x:Key="TextControlFocusedBorderBrush" ResourceKey="ControlStrokeColorDefaultBrush" />
+                </TextBox.Resources>
+            </TextBox>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

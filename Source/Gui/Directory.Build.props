@@ -1,0 +1,13 @@
+<Project>
+  <!--
+    Sibling to Source\Directory.Build.props - see the comments there for why this exists as a
+    separate file (rather than one shared file using $(MSBuildProjectName)) and why
+    BaseIntermediateOutputPath has to be set at this props-file level at all. MSBuild only
+    auto-imports the closest Directory.Build.props up the tree, so this one - not Source\'s -
+    is what applies to DekUnrealGameAudit.Gui.csproj.
+  -->
+  <PropertyGroup>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\Build\bin\DekUnrealGameAudit.Gui\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\Build\obj\DekUnrealGameAudit.Gui\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    Sibling to Source\Directory.Build.props and Source\Gui\Directory.Build.props - see the comments
+    there for why each project needs its own copy rather than one shared file using
+    $(MSBuildProjectName). MSBuild only auto-imports the closest Directory.Build.props up the tree,
+    so this one - not Source\'s - is what applies to DekUnrealGameAudit.Tests.csproj.
+  -->
+  <PropertyGroup>
+    <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\Build\bin\DekUnrealGameAudit.Tests\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\..\Build\obj\DekUnrealGameAudit.Tests\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+</Project>

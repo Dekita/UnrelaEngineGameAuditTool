@@ -1,0 +1,12 @@
+# Build output (see "Project layout" in README.md)
+Build/
+Output/
+
+# Scan results / scratch space - never checked in
+test-output/
+manifests/
+*.log
+
+# Real per-machine settings.bat values (paths, AES keys) - never committed; see Scripts/settings.bat
+Scripts/settings.local.bat
+
